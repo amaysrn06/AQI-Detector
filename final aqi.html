@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Live AQI Checker (GPS)</title>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #eef2f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .card {
+    background: #fff;
+    padding: 25px;
+    width: 360px;
+    border-radius: 12px;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+    text-align: center;
+  }
+
+  h2 {
+    margin-bottom: 15px;
+  }
+
+  input {
+    width: 100%;
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+
+  button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: #0056b3;
+  }
+
+  .result {
+    margin-top: 15px;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: bold;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2>🌍 Live AQI Checker</h2>
+
+  <input type="text" id="lat" placeholder="Latitude" readonly>
+  <input type="text" id="lon" placeholder="Longitude" readonly>
+
+  <button onclick="checkAQI()">Check AQI</button>
+
+  <div class="result" id="output">AQI will appear here</div>
+</div>
+
+<script>
+  const API_KEY = "b16b359a2712ebc30fbc4b4fa3f4ad48"; // 🔑 PUT YOUR OPENWEATHER API KEY
+
+  // Get GPS Location Automatically
+  navigator.geolocation.getCurrentPosition(
+    position => {
+      document.getElementById("lat").value = position.coords.latitude.toFixed(4);
+      document.getElementById("lon").value = position.coords.longitude.toFixed(4);
+    },
+    () => alert("Location access denied")
+  );
+
+  function checkAQI() {
+    const lat = document.getElementById("lat").value;
+    const lon = document.getElementById("lon").value;
+
+    if (!lat || !lon) {
+      alert("Location not detected yet");
+      return;
+    }
+
+    const url = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${API_KEY}`;
+
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        const aqi = data.list[0].main.aqi;
+        showAQI(aqi);
+      })
+      .catch(() => {
+        document.getElementById("output").innerText = "Error fetching AQI";
+      });
+  }
+
+  function showAQI(aqi) {
+    const output = document.getElementById("output");
+    let text = "";
+    let color = "";
+
+    switch (aqi) {
+      case 1:
+        text = "AQI: 1 (Good 😊)";
+        color = "#4CAF50";
+        break;
+      case 2:
+        text = "AQI: 2 (Fair 🙂)";
+        color = "#8BC34A";
+        break;
+      case 3:
+        text = "AQI: 3 (Moderate 😐)";
+        color = "#FFC107";
+        break;
+      case 4:
+        text = "AQI: 4 (Poor 😷)";
+        color = "#FF9800";
+        break;
+      case 5:
+        text = "AQI: 5 (Very Poor ☠️)";
+        color = "#F44336";
+        break;
+      default:
+        text = "Unknown AQI";
+        color = "#9E9E9E";
+    }
+
+    output.innerText = text;
+    output.style.background = color;
+    output.style.color = "white";
+  }
+</script>
+
+</body>
+</html>
